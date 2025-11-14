@@ -1,0 +1,134 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-6xl mx-auto animate-on-scroll">
+  <!-- Header -->
+  <div class="doc-header mb-8">
+    <div class="glass rounded-2xl p-8">
+      <div
+        class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4"
+      >
+        <div>
+          <h2 class="text-4xl font-bold text-brown-800 mb-2">
+            {{ doc.title }}
+          </h2>
+          <div class="flex items-center space-x-4 text-brown-600">
+            <span class="badge-custom">{{ doc.doc_type|upper }}</span>
+            <span>By {{ doc.author.username }}</span>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{{ url_for('dashboard') }}"
+            class="btn-secondary-custom px-6 py-3 rounded-lg font-semibold"
+          >
+            Back to Dashboard
+          </a>
+          {% if session.role == 'admin' %}
+          <a
+            href="{{ url_for('edit_doc', doc_id=doc.id) }}"
+            class="btn-primary-custom px-6 py-3 rounded-lg font-semibold"
+          >
+            Edit Document
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Details -->
+  <div class="doc-details grid lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      {% if doc.content %}
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="text-xl font-semibold text-brown-800 mb-4">Content</h3>
+        <div
+          class="content-box bg-gray-50 rounded-lg p-6 border-l-4 border-green-500"
+        >
+          {{ doc.content|replace('\n', '<br />')|safe }}
+        </div>
+      </div>
+      {% endif %} {% if doc.file_path %}
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="text-xl font-semibold text-brown-800 mb-4">Original File</h3>
+        <div
+          class="file-info flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
+        >
+          <div>
+            <span
+              class="filename font-mono text-blue-700 bg-blue-100 px-3 py-1 rounded"
+            >
+              {{ doc.file_path.split('/')[-1] }}
+            </span>
+          </div>
+          <a
+            href="{{ url_for('download_file', doc_id=doc.id) }}"
+            class="btn-primary-custom px-4 py-2 rounded text-sm font-semibold"
+          >
+            Download Original
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Document Info -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-brown-800 mb-4">
+          Document Information
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-sm font-medium text-brown-600">Created By</label>
+            <p class="text-brown-800">{{ doc.author.username }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-brown-600"
+              >Created Date</label
+            >
+            <p class="text-brown-800">
+              {{ doc.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-brown-600"
+              >Document Type</label
+            >
+            <p class="text-brown-800">{{ doc.doc_type|upper }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversion Options -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-brown-800 mb-4">Convert To</h3>
+        <div class="conversion-options space-y-3">
+          <a
+            href="{{ url_for('convert_doc', doc_id=doc.id, target_format='pdf') }}"
+            class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-300 block text-center"
+          >
+            Download as PDF
+          </a>
+          <a
+            href="{{ url_for('convert_doc', doc_id=doc.id, target_format='excel') }}"
+            class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-300 block text-center"
+          >
+            Download as Excel
+          </a>
+          <a
+            href="{{ url_for('convert_doc', doc_id=doc.id, target_format='word') }}"
+            class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-300 block text-center"
+          >
+            Download as Word
+          </a>
+        </div>
+        <small class="conversion-note text-brown-500 text-sm mt-3 block">
+          Converts document content to different formats
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

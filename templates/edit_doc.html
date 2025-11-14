@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-on-scroll">
+    <div class="glass rounded-2xl p-8">
+        <h2 class="text-3xl font-bold text-brown-800 mb-2">Edit Documentation</h2>
+        <p class="text-brown-600 mb-8">Update the details of your documentation below</p>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <!-- Title -->
+            <div class="form-group">
+                <label class="block text-sm font-medium text-brown-700 mb-2">Title</label>
+                <input type="text" name="title" 
+                       value="{{ doc.title }}" 
+                       required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300">
+            </div>
+            
+            <!-- Document Type -->
+            <div class="form-group">
+                <label class="block text-sm font-medium text-brown-700 mb-2">Document Type</label>
+                <select name="doc_type" id="doc-type-select" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300">
+                    <option value="manual" {% if doc.doc_type == 'manual' %}selected{% endif %}>Manual Input</option>
+                    <option value="pdf" {% if doc.doc_type == 'pdf' %}selected{% endif %}>PDF</option>
+                    <option value="word" {% if doc.doc_type == 'word' %}selected{% endif %}>Word Document</option>
+                    <option value="excel" {% if doc.doc_type == 'excel' %}selected{% endif %}>Excel</option>
+                    <option value="image" {% if doc.doc_type == 'image' %}selected{% endif %}>Image</option>
+                </select>
+            </div>
+            
+            <!-- Content Field -->
+            <div class="form-group" id="content-field">
+                <label class="block text-sm font-medium text-brown-700 mb-2">Content (for manual input)</label>
+                <textarea name="content" rows="5" 
+                          placeholder="Enter your documentation content here..."
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300">{{ doc.content or '' }}</textarea>
+            </div>
+            
+            <!-- File Field -->
+            <div class="form-group" id="file-field" style="display: none">
+                <label class="block text-sm font-medium text-brown-700 mb-2">Upload New File (optional)</label>
+                <input type="file" name="file" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300">
+                <small class="text-sm text-brown-500 mt-1 block">
+                    Allowed files: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Images (.jpg, .jpeg, .png)
+                </small>
+                
+                {% if doc.file_path %}
+                <div class="current-file mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <strong class="text-blue-700">Current File:</strong> 
+                    <span class="text-blue-600">{{ doc.file_path.split('/')[-1] }}</span>
+                    <a href="{{ url_for('download_file', doc_id=doc.id) }}" 
+                       class="btn-secondary-custom ml-2 px-3 py-1 rounded text-sm">
+                        Download
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="form-actions flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+                <button type="submit" 
+                        class="btn-primary-custom px-8 py-3 rounded-lg font-semibold">
+                    Update Documentation
+                </button>
+                <a href="{{ url_for('dashboard') }}" 
+                   class="btn-secondary-custom px-8 py-3 rounded-lg font-semibold">
+                    Cancel
+                </a>
+                
+                {% if session.role == 'admin' or doc.user_id == session.user_id %}
+                <button type="button" onclick="confirmDelete()" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-300">
+                    Delete Document
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const docTypeSelect = document.getElementById('doc-type-select');
+        const contentField = document.getElementById('content-field');
+        const fileField = document.getElementById('file-field');
+        
+        function toggleFields() {
+            const type = docTypeSelect.value;
+            
+            if (type === 'manual') {
+                contentField.style.display = 'block';
+                fileField.style.display = 'none';
+            } else {
+                contentField.style.display = 'none';
+                fileField.style.display = 'block';
+            }
+        }
+        
+        // Initial toggle
+        toggleFields();
+        
+        // Add event listener for changes
+        docTypeSelect.addEventListener('change', toggleFields);
+    });
+    
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('delete_doc', doc_id=doc.id) }}";
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}
